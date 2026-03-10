@@ -1,0 +1,81 @@
+[Step 2] 파이썬코드용 붙여 넣기 자료 생성 (Formatted Output)
+
+===TOPIC=== [소재]: 인간 정보 처리 능력의 한계와 병목(Bottleneck) 은유 [쉽게 풀어 설명하는 한줄 요약]: 병의 좁은 목이 물의 흐름을 제한하듯, 인간의 뇌도 '병목 현상'처럼 한 번에 처리할 수 있는 정보의 **양(quantity)**에 한계가 있다.
+
+===HEADER=== 7. 다음 빈칸에 들어갈 말로 가장 적절한 것은? [3점] | 2014학년도 6월 평가원 A형 34번 |
+
+===SOURCE=== ❶ It is known that people are extremely limited in the amount of information that they can process at any given time. ❷ A common metaphor in early theories of attention is the concept of a bottleneck. ❸ This metaphor is especially appealing because it matches our understanding about attention. ❹ The narrow neck of a bottle restricts the flow into or out of the bottle. ❺ This kind of flow in the narrow passageway is similar to the way people process information. ❻ In other words, this bottleneck limits the ____________________ of information to which we can pay attention. ❼ Thus, when one message is currently flowing through a bottleneck, the other messages must be left behind. metaphor: 은유
+
+===OPTIONS=== ① value <span class="error-log">[무관] 정보의 '중요성'이 아니라 '처리 용량'에 관한 글임.</span> (가치) ② sources <span class="error-log">[무관] 정보가 어디서 왔는지는 언급되지 않음.</span> (원천) ③ quantity <span class="error-log">[정답] S1의 'amount', S4의 'flow(size)'와 일맥상통하는 단어.</span> (양) ④ reliability <span class="error-log">[무관] 정보가 믿을 만한지에 대한 내용 아님.</span> (신뢰성) ⑤ familiarity <span class="error-log">[무관] 정보가 익숙한지 여부는 논점이 아님.</span> (친숙함)
+
+===VOCAB_TABLE=== | 단어 | 뜻 | 유의어 | 혼동어 | | :--- | :--- | :--- | :--- | | process [프'로세스] | ①과정 ②(정보를) 처리하다 | handle, deal with | proceed (나아가다) | | limited ['리미티드] | 제한된, 한정된 | restricted, confined | limitless (무제한의) | | metaphor ['메타포] | 은유, 비유 | analogy, symbol | metamorphosis (변태/변형) | | bottleneck ['바틀넥] | 병목(현상), 좁은 통로 | blockage, obstacle | bottom (바닥) | | appealing [어'필링] | 매력적인, 호소하는 | attractive, engaging | appalling (끔찍한) | | restrict [리스'트릭트] | 제한하다, 한정하다 | limit, constrain | district (구역) | | quantity ['퀀터티] | 양(量), 수량 | amount, volume | quality (질) | | passageway ['패시지웨이] | 통로, 복도 | corridor, path | passenger (승객) | | attention [어'텐션] | 주의, 주목 | concentration, notice | attendance (출석) | | reliability [릴라이어'빌리티] | 신뢰성, 확실성 | dependability, trust | liability (부채/책임) |
+
+===KEY_SENTENCES=== | [출처] | [종류] | [영어 문장] | [한글 해석] | [선정 사유+어려운 단어2~3개] | | :--- | :--- | :--- | :--- | :--- | | [2014-6월 34번] | 주제문 | ❶ It is known that people are extremely limited in the amount of information that they can process at any given time. [2014-6월 34번] | 사람들이 어느 주어진 시간에 처리할 수 있는 정보의 양에는 극도로 한계가 있다는 것이 알려져 있다. | [주제문 선정] 글의 대전제를 제시하는 문장으로 가주어(It)~진주어(that) 구문과 관계대명사절 수식을 정확히 파악해야 함. (단어: extremely:극도로, process:처리하다, given:주어진) | | [2014-6월 34번] | 핵심 구문 | ❻ In other words, this bottleneck limits the quantity of information to which we can pay attention. [2014-6월 34번] | 다시 말해서, 이 병목은 우리가 주의를 기울일 수 있는 정보의 양을 제한한다. | [전치사+관계대명사] 'to which'가 선행사 'the quantity of information'을 수식하는 구조. 'pay attention to' 숙어가 관계사절로 변형된 형태 이해 필수. (단어: In other words:다시 말해서, limit:제한하다, attention:주의/주목) | | [2014-6월 34번] | 핵심 구문 | ❺ This kind of flow in the narrow passageway is similar to the way people process information. [2014-6월 34번] | 좁은 통로에서의 이러한 종류의 흐름은 사람들이 정보를 처리하는 방식과 유사하다. | [관계부사 생략] 'the way' 뒤에 관계부사 'how'가 올 수 없으며(생략 또는 that 대체), 주어 동사가 바로 이어져 수식하는 구조를 학습하기 좋음. (단어: passageway:통로, similar to:~와 유사한) |
+
+===ANALYSIS=== ★★ ❶ [S] It / [V] is known / [con] that [S] people / [V] are / [M] extremely / [C] △limited in the amount of information▽ / [con] that [S] they / [V] can process / [M] at any given time. → [S]그것은 [V]알려져 있다 / [con](~라는 것이) [S]사람들이 / V이다 / [M]극도로 / [C]정보의 양에 있어서 제한된 / [con](어떤 정보냐면) [S]그들이 [V]처리할 수 있는 / [M]어느 주어진 시간에. [요약: 인간 정보 처리량 = 한계 있음] 주요단어: extremely:극도로, process:처리하다 [구문팁] : It(가주어) ~ that(진주어) 구문. amount of information 뒤의 that은 목적격 관계대명사로 process의 목적어 역할을 함.
+
+❷ [S] ▲A common metaphor▼ / [M] in early theories of attention / [V] is [C] the concept of a bottleneck. → [S]흔한 은유는 / [M]초기 주의력 이론들에서의 / [V]이다 [C]병목의 개념. [요약: 주의력 이론 = 병목 비유 사용] 주요단어: metaphor:은유, attention:주의(력) [구문팁] : 주어는 A common metaphor(단수)이므로 동사는 is가 쓰임.
+
+❸ [S] This metaphor / [V] is / [M] especially / [C] appealing / [con] because [S] it / [V] matches / [O] our understanding about attention. → [S]이 은유는 / [V]이다 / [M]특히 / [C]매력적인 / [con]왜냐하면 [S]그것이 / [V]일치하기 때문이다 / [O]주의력에 대한 우리의 이해와. [요약: 이 비유는 이해하기 쉬움] 주요단어: appealing:호소력 있는/매력적인, match:일치하다/어울리다 [구문팁] : appealing은 사물 주어(metaphor)를 설명하므로 현재분사(-ing) 형태 사용.
+
+❹ [S] The narrow neck of a bottle / [V] restricts / [O] the flow / [M] into or out of the bottle. → [S]병의 좁은 목은 / [V]제한한다 / [O]흐름을 / [M]병 안으로 혹은 밖으로의. [요약: 좁은 목 = 흐름 제한] 주요단어: restrict:제한하다, flow:흐름 [구문팁] : restrict는 limit와 동의어로 쓰임.
+
+❺ [S] This kind of flow / [M] in the narrow passageway / [V] is similar to / [O] the way people process information. → [S]이런 종류의 흐름은 / [M]좁은 통로에서의 / [V]~와 유사하다 / [O]사람들이 정보를 처리하는 방식과. [요약: 병의 흐름 = 정보 처리 방식] 주요단어: passageway:통로, similar to:~와 유사한 [구문팁] : the way 뒤에는 관계부사 how가 올 수 없으며, (that)이나 (in which)가 생략된 채로 주어(people)+동사(process)가 수식함.
+
+★ ❻ [M] In other words, / [S] ▲this bottleneck▼ / [V] limits / [O] △the quantity of information▽ / [con] to which [S] we / [V] can pay attention. → [M]다시 말해서, / [S]이 병목은 / [V]제한한다 / [O]정보의 양을 / [con](어떤 정보냐면) [S]우리가 / [V]주의를 기울일 수 있는. [요약: 병목 = 정보량 제한] 주요단어: quantity:양, pay attention to:~에 주의하다 [구문팁] : 'pay attention to information'에서 information이 선행사로 나가면서 전치사 to가 관계대명사 앞으로 이동한 형태 (to which).
+
+❼ [M] Thus, / [con] when [S] one message / [V] is / [M] currently / [V] flowing / [M] through a bottleneck, / [S] the other messages / [V] must be left behind. → [M]따라서, / [con]~할 때 [S]하나의 메시지가 / [V]현재 흐르고 있을 때 / [M]병목을 통과하여, / [S]다른 메시지들은 / [V]남겨져야만 한다. [요약: 하나 처리 중 = 나머지는 대기/탈락] 주요단어: currently:현재, leave behind:남겨두다 [구문팁] : must be left behind는 수동태로, 처리되지 못한 정보들이 '남겨짐을 당한다'는 의미.
+
+===LOGIC_MAP=== S1 (Topic/Premise): 인간의 정보 처리 능력 = 양(Amount)적으로 극히 제한됨 │ ↓ (Metaphor Introduction) S2~S3: 주의력 이론의 비유 = '병목(Bottleneck)' (이해하기 쉬운 비유) │ ↓ (Elaboration) S4: 병의 좁은 목(Narrow neck) = 흐름(flow)을 제한함 │ ↓ (Analogy Application) S5: 병의 흐름 제한 = 인간의 정보 처리 방식과 유사함 │ ↓ (★Restatement/Conclusion) S6: 즉(In other words), 병목 = 우리가 주의를 기울이는 정보의 [양(Quantity)]을 제한 │ ↓ (Result) S7: 한 메시지가 흐르면 → 나머지는 남겨져야 함 (선택과 배제)
+
+===ANSWER=== [유형별 분석 알고리즘]
+
+유형: 빈칸 추론 (Blank Inference)
+
+전략: '재진술(Paraphrasing)' 찾기.
+
+대의 파악: 글의 첫 문장(S1)에서 주제(인간 정보 처리 능력의 한계)를 제시.
+
+비유 연결: 병목(bottleneck) 현상을 도입하여 한계를 설명.
+
+타겟팅: 빈칸이 포함된 S6 문장은 "In other words(다시 말해)"로 시작하므로, 앞선 내용의 요약이자 S1의 재진술임.
+
+[실제 근거 서술]
+
+소재 및 방향성: 인간의 정보 처리 능력의 한계 (양적인 제한)
+
+결정적 단서 (Target Sentences):
+
+단서 1 (S1): "...limited in the amount of information..." (정보의 양에 있어 극도로 제한된다.)
+
+단서 2 (S4): "The narrow neck ... restricts the flow..." (좁은 목은 흐름을 제한한다.)
+
+논리 연결 (Paraphrasing):
+
+"[S1] limited in the amount" → "[S4] restricts the flow" → "[S6] limits the [quantity]"
+
+(Arrow: Amount → Flow → Quantity)
+
+===SCENARIO=== Step 1. 지문 마킹 시뮬레이션 Step 2. 지문 위 마킹 가이드 핵심 소재 표시 (Sentence 1)
+
+표시: limited와 amount에 형광펜 쫙!
+
+멘트: "자, 첫 문장이 제일 중요해. 사람 머리가 슈퍼컴퓨터니? 아니지. 정보 처리에 '한계(limited)'가 있는데, 질적인 거야 양적인 거야? 그렇지, **'amount(양)'**야. 이거 놓치면 끝이다."
+
+비유의 이해 (Sentence 4)
+
+표시: restricts와 flow에 밑줄.
+
+멘트: "병목(bottleneck) 현상이 뭐야? 병 주둥이가 좁으니까 물이 콸콸 못 나오지? 그게 restricts the flow야. 흐름(양)을 제한한다고."
+
+빈칸 추론 (Sentence 6)
+
+표시: 빈칸 자리에 별표(★). In other words에 세모(▽).
+
+멘트: "In other words, 즉! 다시 말하자면. 앞의 말을 정리하는 거야. 병목이 뭘 제한해? 흐름! 양! 그러니까 빈칸엔 **'amount'**랑 똑같은 말이 들어가야지. 선지 봐봐. '양'이 영어로 뭐니? 그렇지, Quantity!"
+
+Step 3. 지문 집중 팁
+
+빨간색 펜: 연결사 In other words (S6), Thus (S7) - 논리의 흐름을 정리하는 구간.
+
+형광펜: amount (S1) → flow (S4) → quantity (S6) - 핵심 키워드의 변형(Paraphrasing) 관계 연결.

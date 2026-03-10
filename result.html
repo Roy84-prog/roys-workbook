@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영어 지문 분석 학습지</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@400;700&display=swap');
+
+    body {
+        font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        font-size: 16px;
+        color: #333;
+        margin: 20px;
+    }
+
+    /* [컨테이너 레이아웃 - 55:45 비율 고정] */
+    .container {
+        display: flex;
+        gap: 20px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 30px;
+    }
+
+    /* === 왼쪽 칼럼 (55%) === */
+    .english-col {
+        flex: 55;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px dashed #ccc;
+        padding-right: 15px;
+    }
+
+    .topic-box-top {
+        width: 100%; 
+        box-sizing: border-box; 
+        max-height: 80px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        padding: 8px 12px;
+        background-color: #e8f5e9; 
+        border-left: 5px solid #4caf50; 
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #1b5e20;
+        white-space: normal;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .question-header {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 10px;
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+        padding-left: 5px;
+    }
+
+    /* [지문 텍스트 - Visual Mirroring, 줄간격 3.0] */
+    .source-text {
+        white-space: pre-wrap;
+        font-family: 'Times New Roman', serif;
+        line-height: 3.0; 
+        font-size: 20px;
+        letter-spacing: 0.5px;
+        overflow-x: auto;
+        margin-bottom: 20px;
+        width: 100%;
+        color: #000;
+    }
+
+    .question-options {
+        margin-top: 40px;
+        padding-top: 15px;
+        border-top: 2px solid #eee;
+        white-space: normal;
+        line-height: 1.6;
+        font-size: 16px;
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+        color: #333;
+    }
+
+    /* 표 스타일 */
+    .vocab-box, .key-sentences-box {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+    .vocab-box table, .key-sentences-box table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+        font-size: 12px;
+        background-color: #fff;
+    }
+    .vocab-box th, .key-sentences-box th {
+        background-color: #f1f3f5;
+        color: #333;
+        font-weight: bold;
+        padding: 6px;
+        border: 1px solid #e9ecef;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .vocab-box td, .key-sentences-box td {
+        padding: 6px;
+        border: 1px solid #e9ecef;
+        color: #555;
+        vertical-align: middle;
+        word-break: keep-all;
+    }
+    .key-sentences-label { font-weight: bold; font-size: 14px; color: #2c3e50; margin: 8px; display: block; }
+    .pronunciation { font-size: 11px; color: #888; margin-left: 2px; }
+
+    /* === 오른쪽 칼럼 (45%) === */
+    .korean-col {
+        flex: 45;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #444;
+        padding-top: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .trans-item {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        word-break: keep-all;
+    }
+
+    /* 영어 분석 문장 (배경색, 폰트) */
+    .analysis-eng {
+        display: block;
+        font-family: 'Times New Roman', serif;
+        font-size: 18px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #2c3e50;
+        padding: 8px 12px;        
+        margin-bottom: 10px;      
+        border-radius: 4px;       
+        color: #000;
+        line-height: 1.5;
+    }
+
+    /* 한글 해석 (요약 포함) */
+    .analysis-kor { 
+        display: block; 
+        margin-bottom: 5px; 
+        color: #555; 
+        line-height: 1.3; 
+    }
+
+    /* 요약 마크 (형광펜 느낌) */
+    .summary-mark {
+        display: inline-block; font-size: 12px; font-weight: bold;
+        background-color: #FFF9C4; border: 1px solid #FBC02D;
+        color: #555; border-radius: 4px; padding: 1px 5px;
+        margin-left: 8px; vertical-align: 1px;
+    }
+
+    /* 구문팁 */
+    .syntax-tip {
+        display: block; width: fit-content; max-width: 100%;
+        margin-top: 6px; padding: 3px 8px;
+        border: 1px solid #333; background-color: #fff;
+        border-radius: 3px; font-size: 12px; color: #000;
+        line-height: 1.3; font-family: 'Apple SD Gothic Neo', sans-serif;
+        box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    }
+    .tip-label {
+        display: inline-block; font-weight: bold; color: #fff;
+        background-color: #333; padding: 0px 5px;
+        border-radius: 2px; margin-right: 5px; font-size: 11px;
+        vertical-align: 1px;
+    }
+
+    /* 기타 박스들 */
+    .info-box, .logic-map-box { margin-bottom: 10px; padding: 10px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
+    .info-box { background-color: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; }
+    .logic-map-box { background-color: #f5f5f5; border: 1px solid #e0e0e0; font-family: 'Consolas', monospace; white-space: pre; overflow-x: auto; font-size: 11px; }
+    .info-title, .logic-title { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+
+    /* 시나리오 */
+    .scenario-container { margin-top: 15px; border-top: 2px dashed #bbb; padding-top: 15px; background-color: #fff; }
+    .scenario-step { margin-bottom: 10px; padding: 10px; border-radius: 5px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+    .scenario-label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
+    .simulation-text { background-color: #2c3e50; color: #ecf0f1; font-family: 'Consolas', monospace; border: 1px solid #34495e; padding: 10px; }
+    .guide-text { background-color: #e3f2fd; border: 1px solid #90caf9; color: #1565c0; }
+    .tip-text { background-color: #fff3e0; border-left: 4px solid #ff9800; color: #e65100; }
+
+    /* [형광펜 및 태그 색상] - 선생님 지정 색상 */
+    .highlight-sojae { background-color: #ffcdd2; box-shadow: 0 0 0 1px #e53935; border-radius: 3px; padding: 0 2px; margin: 0 2px; font-weight: bold; }
+    .highlight-clue { background-color: #e3f2fd; box-shadow: 0 0 0 1px #64b5f6; border-radius: 3px; padding: 0 2px; margin: 0 2px; font-weight: bold; }
+
+    .S { color: #0066CC; font-weight: bold; }
+    .V { color: #FF3333; font-weight: bold; }
+    .C { color: #009900; font-weight: bold; }
+    .O { color: #8B4513; font-weight: bold; }
+    .M { color: #800080; }
+
+    .number { display: inline-block; width: 22px; height: 22px; background-color: #000; color: #fff; border-radius: 50%; text-align: center; line-height: 22px; font-size: 13px; margin-right: 6px; font-weight: bold; vertical-align: middle; transform: translateY(-2px); }
+    .vocab { position: relative; display: inline-block; margin: 0 2px; line-height: 1.0; vertical-align: baseline; cursor: pointer; border-bottom: 1px dotted #333; font-weight: bold; }
+    .mean { display: block; position: absolute; top: 100%; margin-top: 3px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #333; font-weight: normal; white-space: normal; text-align: center; line-height: 1.2; width: max-content; min-width: 60px; max-width: 140px; background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; border-radius: 4px; padding: 3px 5px; z-index: 50; box-shadow: 1px 2px 4px rgba(0,0,0,0.1); }
+    .synonym { display: block; font-size: 10px; color: #777; margin-top: 2px; border-top: 1px dashed #eee; padding-top: 1px; }
+    .error-log { font-size: 13px; color: #c0392b; margin-left: 5px; background: #f9e79f; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="english-col">
+            <div class="topic-box-top">
+                <strong>📌 Topic & Summary</strong><br>
+                [소재]: 인간 정보 처리 능력의 한계와 병목(Bottleneck) 은유 [쉽게 풀어 설명하는 한줄 요약]: 병의 좁은 목이 물의 흐름을 제한하듯, 인간의 뇌도 '병목 현상'처럼 한 번에 처리할 수 있는 정보의 **양(quantity)**에 한계가 있다.
+            </div>
+
+            <div class="question-header">
+                7. 다음 빈칸에 들어갈 말로 가장 적절한 것은? [3점] | 2014학년도 6월 평가원 A형 34번 |
+            </div>
+
+            <div class="source-text">❶ It is known that people are extremely limited in the amount of information that they can process at any given time. ❷ A common metaphor in early theories of attention is the concept of a bottleneck. ❸ This metaphor is especially appealing because it matches our understanding about attention. ❹ The narrow neck of a bottle restricts the flow into or out of the bottle. ❺ This kind of flow in the narrow passageway is similar to the way people process information. ❻ In other words, this bottleneck limits the ____________________ of information to which we can pay attention. ❼ Thus, when one message is currently flowing through a bottleneck, the other messages must be left behind. metaphor: 은유</div>
+
+            <div class="question-options">
+                ① value <span class="error-log">[무관] 정보의 '중요성'이 아니라 '처리 용량'에 관한 글임.</span> (가치) ② sources <span class="error-log">[무관] 정보가 어디서 왔는지는 언급되지 않음.</span> (원천) ③ quantity <span class="error-log">[정답] S1의 'amount', S4의 'flow(size)'와 일맥상통하는 단어.</span> (양) ④ reliability <span class="error-log">[무관] 정보가 믿을 만한지에 대한 내용 아님.</span> (신뢰성) ⑤ familiarity <span class="error-log">[무관] 정보가 익숙한지 여부는 논점이 아님.</span> (친숙함)
+            </div>
+
+            <div class="vocab-box">
+                <table><thead><tr><th>단어</th><th>뜻</th><th>유의어</th><th>혼동어</th></tr></thead><tbody><tr><td>process [프'로세스]</td><td>①과정 ②(정보를) 처리하다</td><td>handle, deal with</td><td>proceed (나아가다)</td></tr><tr><td>limited ['리미티드]</td><td>제한된, 한정된</td><td>restricted, confined</td><td>limitless (무제한의)</td></tr><tr><td>metaphor ['메타포]</td><td>은유, 비유</td><td>analogy, symbol</td><td>metamorphosis (변태/변형)</td></tr><tr><td>bottleneck ['바틀넥]</td><td>병목(현상), 좁은 통로</td><td>blockage, obstacle</td><td>bottom (바닥)</td></tr><tr><td>appealing [어'필링]</td><td>매력적인, 호소하는</td><td>attractive, engaging</td><td>appalling (끔찍한)</td></tr><tr><td>restrict [리스'트릭트]</td><td>제한하다, 한정하다</td><td>limit, constrain</td><td>district (구역)</td></tr><tr><td>quantity ['퀀터티]</td><td>양(量), 수량</td><td>amount, volume</td><td>quality (질)</td></tr><tr><td>passageway ['패시지웨이]</td><td>통로, 복도</td><td>corridor, path</td><td>passenger (승객)</td></tr><tr><td>attention [어'텐션]</td><td>주의, 주목</td><td>concentration, notice</td><td>attendance (출석)</td></tr><tr><td>reliability [릴라이어'빌리티]</td><td>신뢰성, 확실성</td><td>dependability, trust</td><td>liability (부채/책임)</td></tr></tbody></table>
+            </div>
+
+            <div class="key-sentences-box">
+                <span class="key-sentences-label">📌 핵심 구문 분석</span>
+                <table><thead><tr><th>[출처]</th><th>[종류]</th><th>[영어 문장]</th><th>[한글 해석]</th><th>[선정 사유+어려운 단어2~3개]</th></tr></thead><tbody><tr><td>[2014-6월 34번]</td><td>주제문</td><td>❶ It is known that people are extremely limited in the amount of information that they can process at any given time. [2014-6월 34번]</td><td>사람들이 어느 주어진 시간에 처리할 수 있는 정보의 양에는 극도로 한계가 있다는 것이 알려져 있다.</td><td>[주제문 선정] 글의 대전제를 제시하는 문장으로 가주어(It)~진주어(that) 구문과 관계대명사절 수식을 정확히 파악해야 함. (단어: extremely:극도로, process:처리하다, given:주어진)</td></tr><tr><td>[2014-6월 34번]</td><td>핵심 구문</td><td>❻ In other words, this bottleneck limits the quantity of information to which we can pay attention. [2014-6월 34번]</td><td>다시 말해서, 이 병목은 우리가 주의를 기울일 수 있는 정보의 양을 제한한다.</td><td>[전치사+관계대명사] 'to which'가 선행사 'the quantity of information'을 수식하는 구조. 'pay attention to' 숙어가 관계사절로 변형된 형태 이해 필수. (단어: In other words:다시 말해서, limit:제한하다, attention:주의/주목)</td></tr><tr><td>[2014-6월 34번]</td><td>핵심 구문</td><td>❺ This kind of flow in the narrow passageway is similar to the way people process information. [2014-6월 34번]</td><td>좁은 통로에서의 이러한 종류의 흐름은 사람들이 정보를 처리하는 방식과 유사하다.</td><td>[관계부사 생략] 'the way' 뒤에 관계부사 'how'가 올 수 없으며(생략 또는 that 대체), 주어 동사가 바로 이어져 수식하는 구조를 학습하기 좋음. (단어: passageway:통로, similar to:~와 유사한)</td></tr></tbody></table>
+            </div>
+        </div>
+
+        <div class="korean-col">
+            <div class="trans-group">
+                <div class="trans-item">
+  <div class="analysis-eng">★</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">★</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">❶ <span class="S">[S]</span> It / <span class="V">[V]</span> is known / <span class="con">[con]</span> that <span class="S">[S]</span> people / <span class="V">[V]</span> are / <span class="M">[M]</span> extremely / <span class="C">[C]</span> <span class="highlight-clue">limited in the amount of information</span> / <span class="con">[con]</span> that <span class="S">[S]</span> they / <span class="V">[V]</span> can process / <span class="M">[M]</span> at any given time.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="S">[S]</span>그것은 <span class="V">[V]</span>알려져 있다 / <span class="con">[con]</span>(~라는 것이) <span class="S">[S]</span>사람들이 / V이다 / <span class="M">[M]</span>극도로 / <span class="C">[C]</span>정보의 양에 있어서 제한된 / <span class="con">[con]</span>(어떤 정보냐면) <span class="S">[S]</span>그들이 <span class="V">[V]</span>처리할 수 있는 / <span class="M">[M]</span>어느 주어진 시간에. [요약: 인간 정보 처리량 = 한계 있음] 주요단어: extremely:극도로, process:처리하다</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>It(가주어) ~ that(진주어) 구문. amount of information 뒤의 that은 목적격 관계대명사로 process의 목적어 역할을 함.</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">❷ <span class="S">[S]</span> <span class="highlight-sojae">A common metaphor</span> / <span class="M">[M]</span> in early theories of attention / <span class="V">[V]</span> is <span class="C">[C]</span> the concept of a bottleneck.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="S">[S]</span>흔한 은유는 / <span class="M">[M]</span>초기 주의력 이론들에서의 / <span class="V">[V]</span>이다 <span class="C">[C]</span>병목의 개념. [요약: 주의력 이론 = 병목 비유 사용] 주요단어: metaphor:은유, attention:주의(력)</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>주어는 A common metaphor(단수)이므로 동사는 is가 쓰임.</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">❸ <span class="S">[S]</span> This metaphor / <span class="V">[V]</span> is / <span class="M">[M]</span> especially / <span class="C">[C]</span> appealing / <span class="con">[con]</span> because <span class="S">[S]</span> it / <span class="V">[V]</span> matches / <span class="O">[O]</span> our understanding about attention.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="S">[S]</span>이 은유는 / <span class="V">[V]</span>이다 / <span class="M">[M]</span>특히 / <span class="C">[C]</span>매력적인 / <span class="con">[con]</span>왜냐하면 <span class="S">[S]</span>그것이 / <span class="V">[V]</span>일치하기 때문이다 / <span class="O">[O]</span>주의력에 대한 우리의 이해와. [요약: 이 비유는 이해하기 쉬움] 주요단어: appealing:호소력 있는/매력적인, match:일치하다/어울리다</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>appealing은 사물 주어(metaphor)를 설명하므로 현재분사(-ing) 형태 사용.</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">❹ <span class="S">[S]</span> The narrow neck of a bottle / <span class="V">[V]</span> restricts / <span class="O">[O]</span> the flow / <span class="M">[M]</span> into or out of the bottle.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="S">[S]</span>병의 좁은 목은 / <span class="V">[V]</span>제한한다 / <span class="O">[O]</span>흐름을 / <span class="M">[M]</span>병 안으로 혹은 밖으로의. [요약: 좁은 목 = 흐름 제한] 주요단어: restrict:제한하다, flow:흐름</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>restrict는 limit와 동의어로 쓰임.</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">❺ <span class="S">[S]</span> This kind of flow / <span class="M">[M]</span> in the narrow passageway / <span class="V">[V]</span> is similar to / <span class="O">[O]</span> the way people process information.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="S">[S]</span>이런 종류의 흐름은 / <span class="M">[M]</span>좁은 통로에서의 / <span class="V">[V]</span>~와 유사하다 / <span class="O">[O]</span>사람들이 정보를 처리하는 방식과. [요약: 병의 흐름 = 정보 처리 방식] 주요단어: passageway:통로, similar to:~와 유사한</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>the way 뒤에는 관계부사 how가 올 수 없으며, (that)이나 (in which)가 생략된 채로 주어(people)+동사(process)가 수식함.</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">★</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">❻ <span class="M">[M]</span> In other words, / <span class="S">[S]</span> <span class="highlight-sojae">this bottleneck</span> / <span class="V">[V]</span> limits / <span class="O">[O]</span> <span class="highlight-clue">the quantity of information</span> / <span class="con">[con]</span> to which <span class="S">[S]</span> we / <span class="V">[V]</span> can pay attention.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="M">[M]</span>다시 말해서, / <span class="S">[S]</span>이 병목은 / <span class="V">[V]</span>제한한다 / <span class="O">[O]</span>정보의 양을 / <span class="con">[con]</span>(어떤 정보냐면) <span class="S">[S]</span>우리가 / <span class="V">[V]</span>주의를 기울일 수 있는. [요약: 병목 = 정보량 제한] 주요단어: quantity:양, pay attention to:~에 주의하다</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>'pay attention to information'에서 information이 선행사로 나가면서 전치사 to가 관계대명사 앞으로 이동한 형태 (to which).</span>
+</div><div class="trans-item">
+  <div class="analysis-eng">❼ <span class="M">[M]</span> Thus, / <span class="con">[con]</span> when <span class="S">[S]</span> one message / <span class="V">[V]</span> is / <span class="M">[M]</span> currently / <span class="V">[V]</span> flowing / <span class="M">[M]</span> through a bottleneck, / <span class="S">[S]</span> the other messages / <span class="V">[V]</span> must be left behind.</div>
+</div><div class="trans-item">
+  <div class="analysis-eng">→ <span class="M">[M]</span>따라서, / <span class="con">[con]</span>~할 때 <span class="S">[S]</span>하나의 메시지가 / <span class="V">[V]</span>현재 흐르고 있을 때 / <span class="M">[M]</span>병목을 통과하여, / <span class="S">[S]</span>다른 메시지들은 / <span class="V">[V]</span>남겨져야만 한다. [요약: 하나 처리 중 = 나머지는 대기/탈락] 주요단어: currently:현재, leave behind:남겨두다</div>
+  <span class="syntax-tip"><span class="tip-label">구문팁:</span>must be left behind는 수동태로, 처리되지 못한 정보들이 '남겨짐을 당한다'는 의미.</span>
+</div>
+            </div>
+
+            <div class="logic-map-box">
+                <span class="logic-title">📊 Logic Map</span>
+                S1 (Topic/Premise): 인간의 정보 처리 능력 = 양(Amount)적으로 극히 제한됨 │ ↓ (Metaphor Introduction) S2~S3: 주의력 이론의 비유 = '병목(Bottleneck)' (이해하기 쉬운 비유) │ ↓ (Elaboration) S4: 병의 좁은 목(Narrow neck) = 흐름(flow)을 제한함 │ ↓ (Analogy Application) S5: 병의 흐름 제한 = 인간의 정보 처리 방식과 유사함 │ ↓ (★Restatement/Conclusion) S6: 즉(In other words), 병목 = 우리가 주의를 기울이는 정보의 [양(Quantity)]을 제한 │ ↓ (Result) S7: 한 메시지가 흐르면 → 나머지는 남겨져야 함 (선택과 배제)
+            </div>
+
+            <div class="info-box">
+                <span class="info-title">📝 Answer & Analysis</span>
+                [유형별 분석 알고리즘]<br>유형: 빈칸 추론 (Blank Inference)<br>전략: '재진술(Paraphrasing)' 찾기.<br>대의 파악: 글의 첫 문장(S1)에서 주제(인간 정보 처리 능력의 한계)를 제시.<br>비유 연결: 병목(bottleneck) 현상을 도입하여 한계를 설명.<br>타겟팅: 빈칸이 포함된 S6 문장은 "In other words(다시 말해)"로 시작하므로, 앞선 내용의 요약이자 S1의 재진술임.<br>[실제 근거 서술]<br>소재 및 방향성: 인간의 정보 처리 능력의 한계 (양적인 제한)<br>결정적 단서 (Target Sentences):<br>단서 1 (S1): "...limited in the amount of information..." (정보의 양에 있어 극도로 제한된다.)<br>단서 2 (S4): "The narrow neck ... restricts the flow..." (좁은 목은 흐름을 제한한다.)<br>논리 연결 (Paraphrasing):<br>"[S1] limited in the amount" → "[S4] restricts the flow" → "[S6] limits the [quantity]"<br>(Arrow: Amount → Flow → Quantity)
+            </div>
+
+            <div class="scenario-container">
+                <div class="scenario-step"><div class="simulation-text"><span class="scenario-label" style="color:#f1c40f">Step 1. 지문 마킹 시뮬레이션</span>지문 마킹 시뮬레이션</div></div><div class="scenario-step guide-text"><span class="scenario-label" style="color:#0d47a1">Step 2. 지문 위 마킹 가이드</span>지문 위 마킹 가이드 핵심 소재 표시 (Sentence 1)
+표시: limited와 amount에 형광펜 쫙!
+멘트: "자, 첫 문장이 제일 중요해. 사람 머리가 슈퍼컴퓨터니? 아니지. 정보 처리에 '한계(limited)'가 있는데, 질적인 거야 양적인 거야? 그렇지, **'amount(양)'**야. 이거 놓치면 끝이다."
+비유의 이해 (Sentence 4)
+표시: restricts와 flow에 밑줄.
+멘트: "병목(bottleneck) 현상이 뭐야? 병 주둥이가 좁으니까 물이 콸콸 못 나오지? 그게 restricts the flow야. 흐름(양)을 제한한다고."
+빈칸 추론 (Sentence 6)
+표시: 빈칸 자리에 별표(★). In other words에 세모(▽).
+멘트: "In other words, 즉! 다시 말하자면. 앞의 말을 정리하는 거야. 병목이 뭘 제한해? 흐름! 양! 그러니까 빈칸엔 **'amount'**랑 똑같은 말이 들어가야지. 선지 봐봐. '양'이 영어로 뭐니? 그렇지, Quantity!"</div><div class="scenario-step tip-text"><span class="scenario-label" style="color:#e65100">Step 3. 지문 집중 팁</span>지문 집중 팁
+빨간색 펜: 연결사 In other words (S6), Thus (S7) - 논리의 흐름을 정리하는 구간.
+형광펜: amount (S1) → flow (S4) → quantity (S6) - 핵심 키워드의 변형(Paraphrasing) 관계 연결.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
