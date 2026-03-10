@@ -2,9 +2,25 @@ import streamlit as st
 import json
 import re
 import os
+import subprocess
 import tempfile
 import zipfile
 import io
+
+# ==========================================
+# Playwright 브라우저 자동 설치 (클라우드 배포 대응)
+# ==========================================
+@st.cache_resource
+def install_playwright_browser():
+    """Playwright Chromium 브라우저가 없으면 자동 설치합니다."""
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            p.chromium.launch(headless=True).close()
+    except Exception:
+        subprocess.run(["playwright", "install", "chromium"], check=True)
+
+install_playwright_browser()
 
 # 기존 워크북 생성 모듈에서 필요한 함수/변수 임포트
 import importlib.util
