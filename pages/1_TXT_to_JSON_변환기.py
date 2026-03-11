@@ -12,15 +12,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from csat_parser import CSATParser
 from highschool_parser import HighSchoolParser
 
-# ==========================================
-# 페이지 설정
-# ==========================================
-st.set_page_config(
-    page_title="TXT → JSON 변환기",
-    page_icon="🔄",
-    layout="wide"
-)
-
 st.markdown("""
 <style>
     .main-title { font-size: 2.2rem; font-weight: 900; color: #003b6f; margin-bottom: 0; letter-spacing: -1px; }
