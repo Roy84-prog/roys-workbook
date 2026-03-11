@@ -9,6 +9,98 @@ import io
 import datetime
 
 # ==========================================
+# Google Drive 연동
+# ==========================================
+def get_drive_service():
+    """Streamlit secrets에서 서비스 계정 인증 → Drive API 클라이언트 반환"""
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict, scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
+    except Exception:
+        return None
+
+def get_drive_folder_id():
+    """secrets에서 Google Drive 폴더 ID를 가져옵니다."""
+    try:
+        return st.secrets["gdrive"]["folder_id"]
+    except Exception:
+        return None
+
+def upload_to_drive(service, folder_id, file_name, file_bytes, mime_type="application/pdf"):
+    """Google Drive에 파일 업로드 후 file_id 반환"""
+    from googleapiclient.http import MediaInMemoryUpload
+
+    media = MediaInMemoryUpload(file_bytes, mimetype=mime_type)
+    file_metadata = {"name": file_name, "parents": [folder_id]}
+    result = service.files().create(
+        body=file_metadata, media_body=media, fields="id"
+    ).execute()
+    return result.get("id")
+
+def upload_session_to_drive(service, folder_id, pdf_files, meta):
+    """세션 폴더를 Drive에 만들고 PDF + meta.json 업로드"""
+    from googleapiclient.http import MediaInMemoryUpload
+
+    # 세션 서브폴더 생성
+    session_folder = {
+        "name": meta["timestamp"],
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [folder_id],
+    }
+    sf = service.files().create(body=session_folder, fields="id").execute()
+    sf_id = sf["id"]
+
+    # PDF 업로드
+    for fname, data in pdf_files.items():
+        upload_to_drive(service, sf_id, fname, data)
+
+    # meta.json 업로드
+    meta_bytes = json.dumps(meta, ensure_ascii=False, indent=2).encode("utf-8")
+    upload_to_drive(service, sf_id, "meta.json", meta_bytes, "application/json")
+
+    return sf_id
+
+def list_drive_sessions(service, folder_id):
+    """Drive에서 세션 폴더 목록 조회 (최신순)"""
+    query = f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    results = service.files().list(
+        q=query, orderBy="name desc", fields="files(id, name)", pageSize=50
+    ).execute()
+    return results.get("files", [])
+
+def get_drive_session_meta(service, folder_id):
+    """세션 폴더 안의 meta.json을 읽어서 반환"""
+    query = f"'{folder_id}' in parents and name='meta.json' and trashed=false"
+    results = service.files().list(q=query, fields="files(id)").execute()
+    files = results.get("files", [])
+    if not files:
+        return None
+    content = service.files().get_media(fileId=files[0]["id"]).execute()
+    return json.loads(content.decode("utf-8"))
+
+def list_drive_pdfs(service, folder_id):
+    """세션 폴더 안의 PDF 파일 목록"""
+    query = f"'{folder_id}' in parents and name contains '.pdf' and trashed=false"
+    results = service.files().list(q=query, fields="files(id, name)").execute()
+    return results.get("files", [])
+
+def download_drive_file(service, file_id):
+    """Drive에서 파일 바이너리 다운로드"""
+    return service.files().get_media(fileId=file_id).execute()
+
+def delete_drive_folder(service, folder_id):
+    """Drive 폴더(세션) 삭제"""
+    service.files().delete(fileId=folder_id).execute()
+
+DRIVE_AVAILABLE = False
+
+# ==========================================
 # Playwright 브라우저 자동 설치 (클라우드 배포 대응)
 # ==========================================
 @st.cache_resource
@@ -30,8 +122,14 @@ engine = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(engine)
 
 # ==========================================
-# PDF 저장 디렉토리 (이전 생성 기록 보관용)
+# Google Drive 연결 확인
 # ==========================================
+_drive_service = get_drive_service()
+_drive_folder_id = get_drive_folder_id()
+if _drive_service and _drive_folder_id:
+    DRIVE_AVAILABLE = True
+
+# 로컬 히스토리 (Drive 미연결 시 폴백)
 PDF_HISTORY_DIR = os.path.join(os.path.dirname(__file__), "pdf_history")
 os.makedirs(PDF_HISTORY_DIR, exist_ok=True)
 
@@ -215,15 +313,7 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
     # PDF 히스토리에 저장
     if pdf_files:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        session_dir = os.path.join(PDF_HISTORY_DIR, timestamp)
-        os.makedirs(session_dir, exist_ok=True)
-
         file_list = [e['name'] for e in file_entries]
-        for fname, data in pdf_files.items():
-            with open(os.path.join(session_dir, fname), 'wb') as f:
-                f.write(data)
-
-        # 메타 정보 저장
         meta = {
             'timestamp': timestamp,
             'files': file_list,
@@ -232,10 +322,19 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
             'translation_mode': translation_mode,
             'pdf_count': len(pdf_files),
         }
-        with open(os.path.join(session_dir, 'meta.json'), 'w', encoding='utf-8') as f:
-            json.dump(meta, f, ensure_ascii=False, indent=2)
 
-        log(f"PDF {len(pdf_files)}개 저장 완료 (기록: {timestamp})", "ok")
+        # Google Drive에 저장
+        if DRIVE_AVAILABLE:
+            try:
+                upload_session_to_drive(_drive_service, _drive_folder_id, pdf_files, meta)
+                log(f"PDF {len(pdf_files)}개 Google Drive에 저장 완료", "ok")
+            except Exception as e:
+                log(f"Google Drive 저장 실패: {str(e)}", "err")
+                # 로컬 폴백
+                _save_local(timestamp, pdf_files, meta)
+                log(f"로컬에 저장했습니다.", "warn")
+        else:
+            _save_local(timestamp, pdf_files, meta)
 
     total_time_msg = f"총 {len(pdf_files)}개 PDF 생성 완료"
     if errors:
@@ -245,6 +344,17 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
         log(total_time_msg, "ok")
 
     return pdf_files, errors
+
+
+def _save_local(timestamp, pdf_files, meta):
+    """로컬 디스크에 PDF 히스토리 저장 (Drive 미연결 시 폴백)"""
+    session_dir = os.path.join(PDF_HISTORY_DIR, timestamp)
+    os.makedirs(session_dir, exist_ok=True)
+    for fname, data in pdf_files.items():
+        with open(os.path.join(session_dir, fname), 'wb') as f:
+            f.write(data)
+    with open(os.path.join(session_dir, 'meta.json'), 'w', encoding='utf-8') as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
 
 
 def create_zip(file_dict):
@@ -418,75 +528,130 @@ with tab_create:
 
 with tab_history:
     st.markdown("### 이전 생성 기록")
-    st.markdown("이전에 생성한 PDF를 다시 다운로드할 수 있습니다.")
+    storage_label = "Google Drive" if DRIVE_AVAILABLE else "로컬 저장소"
+    st.markdown(f"이전에 생성한 PDF를 다시 다운로드할 수 있습니다. (저장소: **{storage_label}**)")
     st.markdown("---")
 
-    history = load_history()
+    if DRIVE_AVAILABLE:
+        # Google Drive에서 기록 불러오기
+        drive_sessions = list_drive_sessions(_drive_service, _drive_folder_id)
 
-    if not history:
-        st.info("아직 생성된 기록이 없습니다. 'PDF 생성' 탭에서 워크북을 먼저 생성하세요.")
-    else:
-        for h in history:
-            ts = h.get('timestamp', '')
-            display_time = f"{ts[:4]}-{ts[4:6]}-{ts[6:8]} {ts[9:11]}:{ts[11:13]}:{ts[13:15]}" if len(ts) >= 15 else ts
-            file_names = ", ".join(h.get('files', []))
-            pdf_count = h.get('pdf_count', 0)
-            mode_str = []
-            if h.get('standard'): mode_str.append("Standard")
-            if h.get('book'): mode_str.append("Book")
-            trans = "직독직해" if h.get('translation_mode') == 'literal' else "자연스러운 해석"
+        if not drive_sessions:
+            st.info("아직 생성된 기록이 없습니다. 'PDF 생성' 탭에서 워크북을 먼저 생성하세요.")
+        else:
+            for session in drive_sessions:
+                sf_id = session["id"]
+                ts = session["name"]
+                meta = get_drive_session_meta(_drive_service, sf_id)
+                if not meta:
+                    continue
 
-            with st.expander(f"{display_time}  |  PDF {pdf_count}개  |  {', '.join(mode_str)}", expanded=False):
-                st.markdown(f"**소스 파일:** {file_names}")
-                st.markdown(f"**해석 모드:** {trans}")
+                display_time = f"{ts[:4]}-{ts[4:6]}-{ts[6:8]} {ts[9:11]}:{ts[11:13]}:{ts[13:15]}" if len(ts) >= 15 else ts
+                file_names = ", ".join(meta.get('files', []))
+                pdf_count = meta.get('pdf_count', 0)
+                mode_str = []
+                if meta.get('standard'): mode_str.append("Standard")
+                if meta.get('book'): mode_str.append("Book")
+                trans = "직독직해" if meta.get('translation_mode') == 'literal' else "자연스러운 해석"
 
-                session_dir = h.get('dir', '')
-                if os.path.exists(session_dir):
-                    pdf_in_dir = [f for f in os.listdir(session_dir) if f.endswith('.pdf')]
+                with st.expander(f"{display_time}  |  PDF {pdf_count}개  |  {', '.join(mode_str)}", expanded=False):
+                    st.markdown(f"**소스 파일:** {file_names}")
+                    st.markdown(f"**해석 모드:** {trans}")
+
+                    pdfs = list_drive_pdfs(_drive_service, sf_id)
 
                     col1, col2 = st.columns(2)
                     with col1:
-                        for pf in pdf_in_dir:
-                            if '학생' in pf:
-                                with open(os.path.join(session_dir, pf), 'rb') as f:
-                                    st.download_button(
-                                        f"{pf}",
-                                        data=f.read(),
-                                        file_name=pf,
-                                        mime="application/pdf",
-                                        use_container_width=True,
-                                        key=f"hist_{ts}_{pf}"
-                                    )
+                        for pf in pdfs:
+                            if '학생' in pf["name"]:
+                                data = download_drive_file(_drive_service, pf["id"])
+                                st.download_button(
+                                    pf["name"], data=data, file_name=pf["name"],
+                                    mime="application/pdf", use_container_width=True,
+                                    key=f"gdrive_{ts}_{pf['name']}"
+                                )
                     with col2:
-                        for pf in pdf_in_dir:
-                            if '교사' in pf:
-                                with open(os.path.join(session_dir, pf), 'rb') as f:
-                                    st.download_button(
-                                        f"{pf}",
-                                        data=f.read(),
-                                        file_name=pf,
-                                        mime="application/pdf",
-                                        use_container_width=True,
-                                        key=f"hist_{ts}_{pf}"
-                                    )
+                        for pf in pdfs:
+                            if '교사' in pf["name"]:
+                                data = download_drive_file(_drive_service, pf["id"])
+                                st.download_button(
+                                    pf["name"], data=data, file_name=pf["name"],
+                                    mime="application/pdf", use_container_width=True,
+                                    key=f"gdrive_{ts}_{pf['name']}"
+                                )
 
-                    # ZIP 다운로드
-                    if len(pdf_in_dir) > 1:
+                    if len(pdfs) > 1:
                         zip_dict = {}
-                        for pf in pdf_in_dir:
-                            with open(os.path.join(session_dir, pf), 'rb') as f:
-                                zip_dict[pf] = f.read()
+                        for pf in pdfs:
+                            if pf["name"].endswith(".pdf"):
+                                zip_dict[pf["name"]] = download_drive_file(_drive_service, pf["id"])
                         st.download_button(
-                            "전체 ZIP 다운로드",
-                            data=create_zip(zip_dict),
-                            file_name=f"Workbook_{ts}.zip",
-                            mime="application/zip",
-                            use_container_width=True,
-                            key=f"hist_zip_{ts}"
+                            "전체 ZIP 다운로드", data=create_zip(zip_dict),
+                            file_name=f"Workbook_{ts}.zip", mime="application/zip",
+                            use_container_width=True, key=f"gdrive_zip_{ts}"
                         )
 
-                    # 삭제 버튼
-                    if st.button(f"이 기록 삭제", key=f"del_{ts}"):
-                        import shutil
-                        shutil.rmtree(session_dir)
+                    if st.button("이 기록 삭제", key=f"gdrive_del_{ts}"):
+                        delete_drive_folder(_drive_service, sf_id)
                         st.rerun()
+
+    else:
+        # 로컬 히스토리 (Drive 미연결 시)
+        history = load_history()
+
+        if not history:
+            st.info("아직 생성된 기록이 없습니다. 'PDF 생성' 탭에서 워크북을 먼저 생성하세요.")
+        else:
+            for h in history:
+                ts = h.get('timestamp', '')
+                display_time = f"{ts[:4]}-{ts[4:6]}-{ts[6:8]} {ts[9:11]}:{ts[11:13]}:{ts[13:15]}" if len(ts) >= 15 else ts
+                file_names = ", ".join(h.get('files', []))
+                pdf_count = h.get('pdf_count', 0)
+                mode_str = []
+                if h.get('standard'): mode_str.append("Standard")
+                if h.get('book'): mode_str.append("Book")
+                trans = "직독직해" if h.get('translation_mode') == 'literal' else "자연스러운 해석"
+
+                with st.expander(f"{display_time}  |  PDF {pdf_count}개  |  {', '.join(mode_str)}", expanded=False):
+                    st.markdown(f"**소스 파일:** {file_names}")
+                    st.markdown(f"**해석 모드:** {trans}")
+
+                    session_dir = h.get('dir', '')
+                    if os.path.exists(session_dir):
+                        pdf_in_dir = [f for f in os.listdir(session_dir) if f.endswith('.pdf')]
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            for pf in pdf_in_dir:
+                                if '학생' in pf:
+                                    with open(os.path.join(session_dir, pf), 'rb') as f:
+                                        st.download_button(
+                                            pf, data=f.read(), file_name=pf,
+                                            mime="application/pdf", use_container_width=True,
+                                            key=f"hist_{ts}_{pf}"
+                                        )
+                        with col2:
+                            for pf in pdf_in_dir:
+                                if '교사' in pf:
+                                    with open(os.path.join(session_dir, pf), 'rb') as f:
+                                        st.download_button(
+                                            pf, data=f.read(), file_name=pf,
+                                            mime="application/pdf", use_container_width=True,
+                                            key=f"hist_{ts}_{pf}"
+                                        )
+
+                        if len(pdf_in_dir) > 1:
+                            zip_dict = {}
+                            for pf in pdf_in_dir:
+                                with open(os.path.join(session_dir, pf), 'rb') as f:
+                                    zip_dict[pf] = f.read()
+                            st.download_button(
+                                "전체 ZIP 다운로드", data=create_zip(zip_dict),
+                                file_name=f"Workbook_{ts}.zip", mime="application/zip",
+                                use_container_width=True, key=f"hist_zip_{ts}"
+                            )
+
+                        if st.button("이 기록 삭제", key=f"del_{ts}"):
+                            import shutil
+                            shutil.rmtree(session_dir)
+                            st.rerun()
