@@ -968,19 +968,30 @@ def save_html_to_pdf(html_content, output_pdf_path):
     HTML 문자열을 입력받아 지정된 경로에 PDF 파일로 저장하는 함수입니다.
     """
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
         page = browser.new_page()
-        page.set_content(html_content, wait_until="networkidle")
-        # 폰트 로딩 대기 및 실패 감지
+        page.set_content(html_content, wait_until="networkidle", timeout=60000)
+
+        # 웹 폰트 강제 로딩 대기 (각 폰트를 명시적으로 load 요청)
         font_status = page.evaluate("""
-            () => document.fonts.ready.then(() => {
-                const failed = [];
-                document.fonts.forEach(f => {
-                    if (f.status === 'error') failed.push(f.family);
+            () => {
+                const fontFamilies = ['Montserrat', 'Noto Sans KR', 'Noto Serif KR', 'NanumSquareRound', 'KoPub Batang', 'KoPubBatang'];
+                const checks = fontFamilies.map(f =>
+                    document.fonts.load('16px "' + f + '"').then(() => ({family: f, ok: true}))
+                        .catch(() => ({family: f, ok: false}))
+                );
+                return Promise.all(checks).then(results => {
+                    return document.fonts.ready.then(() => {
+                        const failed = results.filter(r => !r.ok).map(r => r.family);
+                        return { total: document.fonts.size, failed: failed };
+                    });
                 });
-                return { total: document.fonts.size, failed: failed };
-            })
+            }
         """)
+
+        # 폰트 렌더링 안정화를 위해 추가 대기
+        page.wait_for_timeout(2000)
+
         if font_status.get('failed'):
             print(f"   ⚠️ 폰트 로딩 실패: {', '.join(font_status['failed'])} - PDF에 기본 폰트가 적용될 수 있습니다.")
         page.pdf(
