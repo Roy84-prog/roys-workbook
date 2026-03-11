@@ -106,6 +106,9 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
     except (ValueError, TypeError):
         file_entries.sort(key=lambda x: x['name'])
 
+    # 정렬된 첫 번째 파일명 저장
+    st.session_state['first_file_name'] = file_entries[0]['name'].replace('.json', '')
+
     log(f"{len(file_entries)}개 JSON 파일 로드 완료", "ok")
 
     # HTML 래퍼
@@ -399,7 +402,7 @@ with tab_create:
                 st.download_button(
                     "전체 PDF ZIP 다운로드",
                     data=zip_data,
-                    file_name=uploaded_files[0].name.replace('.json', '') + ".zip",
+                    file_name=st.session_state.get('first_file_name', 'Workbook') + ".zip",
                     mime="application/zip",
                     use_container_width=True,
                     key="dl_zip"
