@@ -326,7 +326,7 @@ with tab_create:
         st.markdown(f"**{len(uploaded_files)}개 파일 업로드됨**")
 
         with st.expander("업로드된 파일 목록", expanded=False):
-            for uf in uploaded_files:
+            for uf in sorted(uploaded_files, key=lambda x: x.name):
                 size_kb = len(uf.getvalue()) / 1024
                 st.markdown(f"- `{uf.name}` ({size_kb:.1f} KB)")
 
