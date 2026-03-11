@@ -2772,8 +2772,6 @@ def generate_unit_pages(json_str, is_teacher=False, file_name=""):
     ep_eng_lh = "1.6" if total_sents >= 12 else "1.85"
     ep_gap = "10px" if total_sents >= 12 else "16px"
     ep_pad = "10px 12px" if total_sents >= 12 else "12px 15px"
-    # 밑줄 간격: 문장 수에 따라 조정
-    ep_line_count = 2 if total_sents >= 12 else 3
     ep_line_height = "22px" if total_sents >= 12 else "26px"
 
     for stg in stage_data:
@@ -2782,6 +2780,7 @@ def generate_unit_pages(json_str, is_teacher=False, file_name=""):
         target_nums = parse_range(rng)
 
         eng_sents = []
+        sent_count = 0
         for n in target_nums:
             s_dict = next((item for item in eng_sentences if str(item.get('num', -1)) == str(n)), None)
             if s_dict:
@@ -2794,15 +2793,16 @@ def generate_unit_pages(json_str, is_teacher=False, file_name=""):
                 badge_num = convert_num_to_badge_str(s_dict.get('num', n))
                 eng_sents.append(
                     f'<span class="para-mark" style="width:1.2em; height:1.2em; line-height:1.2em; font-size:0.7em;">{badge_num}</span> {clean_eng}')
+                sent_count += 1
 
         if not eng_sents:
             continue
 
         eng_para = " ".join(eng_sents)
 
-        # 빈 밑줄 노트 라인 생성
+        # 빈 밑줄 노트 라인: 문장 개수 + 1
         note_lines_html = ""
-        for _ in range(ep_line_count):
+        for _ in range(sent_count + 1):
             note_lines_html += f'<div style="border-bottom: 1px solid #cfd8dc; height: {ep_line_height};"></div>'
 
         epilogue_paragraphs_html += f'''
