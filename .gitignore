@@ -6,3 +6,4 @@ venv/
 *.pdf
 *.zip
 .idea/
+pdf_history/

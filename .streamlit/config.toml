@@ -1,6 +1,7 @@
 [server]
 headless = true
 maxUploadSize = 50
+address = "0.0.0.0"
 
 [theme]
 primaryColor = "#003b6f"
