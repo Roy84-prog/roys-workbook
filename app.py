@@ -7,6 +7,7 @@ import tempfile
 import zipfile
 import io
 import datetime
+import base64
 
 # ==========================================
 # Playwright 브라우저 자동 설치 (클라우드 배포 대응)
@@ -78,6 +79,23 @@ def render_log():
     if st.session_state.get('log_messages'):
         lines = "<br>".join(st.session_state['log_messages'])
         st.markdown(f'<div class="log-box">{lines}</div>', unsafe_allow_html=True)
+
+
+def auto_download(data_bytes, file_name, mime_type):
+    b64 = base64.b64encode(data_bytes).decode()
+    html = f'''
+    <html><body>
+    <script>
+        var a = document.createElement("a");
+        a.href = "data:{mime_type};base64,{b64}";
+        a.download = "{file_name}";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    </script>
+    </body></html>
+    '''
+    st.components.v1.html(html, height=0, width=0)
 
 
 # ==========================================
@@ -183,12 +201,13 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
     log("HTML 생성 완료. PDF 변환을 시작합니다.", "info")
 
     # PDF 변환
+    first_name = st.session_state.get('first_file_name', 'Workbook')
     pdf_tasks = []
     label_map = {
-        'student_std': ('학생용_Standard.pdf', '학생용 Standard'),
-        'teacher_std': ('교사용_Standard.pdf', '교사용 Standard'),
-        'student_book': ('학생용_Book.pdf', '학생용 Book'),
-        'teacher_book': ('교사용_Book.pdf', '교사용 Book'),
+        'student_std': (f'{first_name}(학생용)_standard.pdf', '학생용 Standard'),
+        'teacher_std': (f'{first_name}(교사용)_standard.pdf', '교사용 Standard'),
+        'student_book': (f'{first_name}(학생용)_book.pdf', '학생용 Book'),
+        'teacher_book': (f'{first_name}(교사용)_book.pdf', '교사용 Book'),
     }
     for key in html_results:
         fname, label = label_map[key]
@@ -353,6 +372,16 @@ with tab_create:
                 if pdf_files:
                     st.session_state['pdf_files'] = pdf_files
                     st.session_state['generation_done'] = True
+
+                    # Standard 버전 자동 다운로드
+                    std_files = {k: v for k, v in pdf_files.items() if 'standard' in k.lower()}
+                    if std_files:
+                        if len(std_files) == 1:
+                            fname = list(std_files.keys())[0]
+                            auto_download(std_files[fname], fname, "application/pdf")
+                        else:
+                            zip_name = st.session_state.get('first_file_name', 'Workbook') + "_standard.zip"
+                            auto_download(create_zip(std_files), zip_name, "application/zip")
 
         # 로그 표시
         init_log()
