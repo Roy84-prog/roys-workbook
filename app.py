@@ -102,7 +102,7 @@ def auto_download(data_bytes, file_name, mime_type):
 # 병합 빌드 + PDF 생성 (한 번에 처리)
 # ==========================================
 def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
-                           watermark_text, gen_standard, gen_book):
+                           watermark_text, gen_standard, gen_book, page_config=None):
     """업로드된 JSON → HTML 병합 → PDF 변환까지 한 번에 처리합니다."""
 
     init_log()
@@ -113,6 +113,12 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
     engine.COVER_CONFIG.update(cover_config)
     engine.TRANSLATION_MODE = translation_mode
     engine.WATERMARK_TEXT = watermark_text
+
+    # PAGE_CONFIG 반영
+    if page_config:
+        for step_key, step_vals in page_config.items():
+            if step_key in engine.PAGE_CONFIG:
+                engine.PAGE_CONFIG[step_key].update(step_vals)
 
     # 파일 정렬
     file_entries = []
@@ -328,6 +334,53 @@ with st.sidebar:
     gen_book = st.checkbox("책 제본용 (Book)", value=True)
 
     st.markdown("---")
+    with st.expander("세부 레이아웃 설정", expanded=False):
+        st.caption("각 STEP별 글자 크기(px)와 줄간격을 조정합니다.")
+
+        st.markdown("##### STEP-1 지문 보기")
+        s1_fs = st.text_input("글자 크기", value="13px", key="s1_fs")
+        s1_lh = st.text_input("줄간격", value="2.15", key="s1_lh")
+        s1_long_fs = st.text_input("장문 글자 크기", value="13px", key="s1_long_fs")
+        s1_long_lh = st.text_input("장문 줄간격", value="1.8", key="s1_long_lh")
+
+        st.markdown("##### STEP-2 어휘")
+        s2_word_fs = st.text_input("단어 크기", value="11.5px", key="s2_word")
+        s2_mean_fs = st.text_input("뜻 크기", value="11px", key="s2_mean")
+        s2_chunk_fs = st.text_input("예문 크기", value="11.5px", key="s2_chunk")
+
+        st.markdown("##### STEP-3 논리 흐름")
+        s3_eng_fs = st.text_input("영어 크기 (10문장 이하)", value="13px", key="s3_eng")
+        s3_eng_long_fs = st.text_input("영어 크기 (11문장 이상)", value="12px", key="s3_eng_long")
+        s3_lh_std = st.text_input("줄간격 (6문장 이하)", value="2.8", key="s3_lh_std")
+        s3_lh_semi = st.text_input("줄간격 (7~9문장)", value="2.7", key="s3_lh_semi")
+        s3_lh_compact = st.text_input("줄간격 (10문장 이상)", value="2.6", key="s3_lh_compact")
+
+        st.markdown("##### STEP-4 체크포인트")
+        s4_fs = st.text_input("글자 크기", value="13.5px", key="s4_fs")
+        s4_lh = st.text_input("줄간격", value="3.0", key="s4_lh")
+        s4_dense_fs = st.text_input("밀집 글자 크기", value="13px", key="s4_dense_fs")
+        s4_dense_lh = st.text_input("밀집 줄간격", value="2.1", key="s4_dense_lh")
+
+        st.markdown("##### STEP-5 정밀 분석")
+        s5_kor_fs = st.text_input("한글 해석 크기", value="11.5", key="s5_kor_fs", help="숫자만 입력 (px 제외)")
+        s5_eng_lh = st.text_input("영어 줄간격", value="3.3", key="s5_eng_lh")
+        s5_kor_lh = st.text_input("한글 줄간격", value="1.8", key="s5_kor_lh")
+
+        st.markdown("##### STEP-6 요약/구문")
+        s6_sum_fs = st.text_input("요약문 크기", value="14px", key="s6_sum_fs")
+        s6_sum_lh = st.text_input("요약문 줄간격", value="1.8", key="s6_sum_lh")
+        s6_syn_eng_fs = st.text_input("구문 영어 크기", value="15px", key="s6_syn_eng_fs")
+        s6_syn_eng_lh = st.text_input("구문 영어 줄간격", value="1.7", key="s6_syn_eng_lh")
+        s6_syn_kor_fs = st.text_input("구문 해석 크기", value="10.5px", key="s6_syn_kor_fs")
+        s6_syn_kor_lh = st.text_input("구문 해석 줄간격", value="1.3", key="s6_syn_kor_lh")
+
+        st.markdown("##### STEP-7 변형 문제")
+        s7_fs = st.text_input("글자 크기", value="13.5px", key="s7_fs")
+        s7_lh = st.text_input("줄간격", value="1.9", key="s7_lh")
+        s7_dense_fs = st.text_input("장문 글자 크기", value="13px", key="s7_dense_fs")
+        s7_dense_lh = st.text_input("장문 줄간격", value="2.0", key="s7_dense_lh")
+
+    st.markdown("---")
     st.markdown("<div style='color:#90a4ae; font-size:12px; text-align:center;'>Roy's Class Workbook Generator v2.0</div>", unsafe_allow_html=True)
 
 
@@ -368,9 +421,42 @@ with tab_create:
                     "bottom_desc": cover_desc.replace("\n", "<br>")
                 }
 
+                page_config = {
+                    "STEP1_OVERVIEW": {
+                        "text_font_size": s1_fs, "text_line_height": s1_lh,
+                        "long_text_font_size": s1_long_fs, "long_text_line_height": s1_long_lh,
+                    },
+                    "STEP2_VOCAB": {
+                        "word_font_size": s2_word_fs, "mean_font_size": s2_mean_fs,
+                        "chunk_font_size": s2_chunk_fs,
+                    },
+                    "STEP3_LOGIC_FLOW": {
+                        "eng_font_size_normal": s3_eng_fs, "eng_font_size_long": s3_eng_long_fs,
+                        "line_height_standard": s3_lh_std, "line_height_semi_compact": s3_lh_semi,
+                        "line_height_compact": s3_lh_compact,
+                    },
+                    "STEP4_CHECKPOINT": {
+                        "text_font_size": s4_fs, "text_line_height": s4_lh,
+                        "dense_font_size": s4_dense_fs, "dense_line_height": s4_dense_lh,
+                    },
+                    "STEP5_INTENSIVE": {
+                        "kor_font_size": s5_kor_fs, "eng_line_height": s5_eng_lh,
+                        "kor_line_height": s5_kor_lh,
+                    },
+                    "STEP6_SUMMARY_SYNTAX": {
+                        "summary_font_size": s6_sum_fs, "summary_line_height": s6_sum_lh,
+                        "syntax_eng_font_size": s6_syn_eng_fs, "syntax_eng_line_height": s6_syn_eng_lh,
+                        "syntax_kor_font_size": s6_syn_kor_fs, "syntax_kor_line_height": s6_syn_kor_lh,
+                    },
+                    "STEP7_REVIEW": {
+                        "text_font_size": s7_fs, "text_line_height": s7_lh,
+                        "dense_font_size": s7_dense_fs, "dense_line_height": s7_dense_lh,
+                    },
+                }
+
                 pdf_files, errors = build_and_generate_pdf(
                     uploaded_files, cover_config, translation_mode,
-                    watermark, gen_standard, gen_book
+                    watermark, gen_standard, gen_book, page_config
                 )
 
                 if pdf_files:
