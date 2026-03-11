@@ -2846,9 +2846,7 @@ def generate_unit_pages(json_str, is_teacher=False, file_name=""):
 </div>
 """
 
-    html += epilogue_page_html
-
-    return step0_page_html, html
+    return step0_page_html, html, epilogue_page_html
 
 
 # ==========================================

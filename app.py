@@ -140,6 +140,8 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
     all_step0_teacher = ""
     all_units_student = ""
     all_units_teacher = ""
+    all_epilogue_student = ""
+    all_epilogue_teacher = ""
 
     errors = []
     progress_bar = st.progress(0, text="HTML 생성 중...")
@@ -148,13 +150,15 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
         progress_bar.progress((i + 1) / len(file_entries) * 0.5, text=f"HTML 생성 중: {entry['name']}")
 
         try:
-            s0_stu, u_stu = engine.generate_unit_pages(entry['content'], is_teacher=False, file_name=entry['name'])
-            s0_tch, u_tch = engine.generate_unit_pages(entry['content'], is_teacher=True, file_name=entry['name'])
+            s0_stu, u_stu, ep_stu = engine.generate_unit_pages(entry['content'], is_teacher=False, file_name=entry['name'])
+            s0_tch, u_tch, ep_tch = engine.generate_unit_pages(entry['content'], is_teacher=True, file_name=entry['name'])
 
             all_step0_student += s0_stu
             all_step0_teacher += s0_tch
             all_units_student += u_stu
             all_units_teacher += u_tch
+            all_epilogue_student += ep_stu
+            all_epilogue_teacher += ep_tch
             log(f"  {entry['name']} 처리 완료", "ok")
         except Exception as e:
             errors.append(f"{entry['name']}: {str(e)}")
@@ -167,8 +171,8 @@ def build_and_generate_pdf(uploaded_files, cover_config, translation_mode,
             return '<div class="page-container page-break">__PAGE_NUM__<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#e0e0e0; font-family:var(--font-eng); font-size:32px; font-weight:900; letter-spacing: 6px; background-color:#fafafa;">M E M O</div></div>'
         return ""
 
-    student_body += all_step0_student + get_blank_page_if_needed(all_step0_student) + all_units_student
-    teacher_body += all_step0_teacher + get_blank_page_if_needed(all_step0_teacher) + all_units_teacher
+    student_body += all_step0_student + get_blank_page_if_needed(all_step0_student) + all_units_student + get_blank_page_if_needed(all_units_student) + all_epilogue_student
+    teacher_body += all_step0_teacher + get_blank_page_if_needed(all_step0_teacher) + all_units_teacher + get_blank_page_if_needed(all_units_teacher) + all_epilogue_teacher
 
     student_body = engine.insert_page_numbers(student_body)
     teacher_body = engine.insert_page_numbers(teacher_body)
