@@ -21,3 +21,7 @@ libx11-xcb1
 libxcb1
 libx11-6
 libxext6
+fonts-noto-cjk
+fonts-noto-cjk-extra
+fonts-nanum
+fonts-nanum-extra
