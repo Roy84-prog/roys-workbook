@@ -8,8 +8,8 @@ from playwright.sync_api import sync_playwright
 # [설정 영역: 교재 기본 정보]
 # ========================================================
 # 0. 출력 모드 설정 (True로 설정된 파일만 렌더링 및 저장됩니다)
-CONFIG_MAKE_STUDENT = True
-CONFIG_MAKE_TEACHER = True
+CONFIG_MAKE_STUDENT = False
+CONFIG_MAKE_TEACHER = False
 CONFIG_MAKE_PRESENTATION = True
 
 # 1. 헤더 및 타이틀 변경 내용을 맨 앞에서 수정할 수 있도록 변수화
@@ -76,18 +76,33 @@ def save_html_to_pdf(html_content, output_pdf_path):
     :param output_pdf_path: 저장될 PDF 파일의 경로 및 이름 (예: 'output.pdf')
     """
     with sync_playwright() as p:
-        # 백그라운드(Headless) 모드로 크롬 브라우저 실행
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
         page = browser.new_page()
 
-        # 브라우저 페이지에 HTML 내용 삽입
-        page.set_content(html_content)
+        page.set_content(html_content, wait_until="networkidle", timeout=60000)
 
-        # ⚠️ 중요: 웹 폰트(구글 폰트 등)가 완전히 로드될 때까지 대기하여 폰트 깨짐 방지
-        page.evaluate("document.fonts.ready")
+        # 웹 폰트 강제 로딩 대기
+        font_status = page.evaluate("""
+            () => {
+                const fontFamilies = ['Montserrat', 'Noto Sans KR', 'Noto Serif KR', 'NanumSquareRound', 'KoPub Batang', 'KoPubBatang'];
+                const checks = fontFamilies.map(f =>
+                    document.fonts.load('16px "' + f + '"').then(() => ({family: f, ok: true}))
+                        .catch(() => ({family: f, ok: false}))
+                );
+                return Promise.all(checks).then(results => {
+                    return document.fonts.ready.then(() => {
+                        const failed = results.filter(r => !r.ok).map(r => r.family);
+                        return { total: document.fonts.size, failed: failed };
+                    });
+                });
+            }
+        """)
 
-        # 수업용 화면의 JS(문장 자르기/가리기)가 모두 실행될 수 있도록 약간 대기
-        page.wait_for_timeout(300)
+        # 폰트 렌더링 안정화 + JS 실행 대기
+        page.wait_for_timeout(2000)
+
+        if font_status.get('failed'):
+            print(f"   ⚠️ 폰트 로딩 실패: {', '.join(font_status['failed'])}")
 
         # A4 사이즈(가로 방향), 배경색 포함, 여백 없이 PDF 저장
         page.pdf(
@@ -1296,6 +1311,21 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
     q_stem_html_vis_p1 = build_q_stem("페이지 1")
     q_stem_html_vis_p2 = build_q_stem("페이지 2")
 
+    # 문장 수 기반 동적 스케일/폰트 조정
+    total_sents = len(data.get('sentence_analysis', []))
+    if total_sents >= 15:
+        pres_scale = 1.25
+        pres_font_size = "13.5px"
+        pres_line_height = "2.0"
+    elif total_sents >= 12:
+        pres_scale = 1.35
+        pres_font_size = "14.5px"
+        pres_line_height = "2.1"
+    else:
+        pres_scale = 1.5
+        pres_font_size = CONFIG_FONT_SIZE_PRESENTATION
+        pres_line_height = CONFIG_LH_PRESENTATION
+
     try:
         q_type = int(meta.get('question_type', 0))
     except:
@@ -1529,13 +1559,15 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
         slide_p2_text = ""
 
     # 슬라이드 생성 공통 함수 (유동적 필기 노트 영역 포함)
-    def make_pres_slide(stem_html, content_html, scale=1.5, use_student_lh=False, align_center=False, slide_idx=0,
+    def make_pres_slide(stem_html, content_html, scale=None, use_student_lh=False, align_center=False, slide_idx=0,
                         show_memo=False):
+        if scale is None:
+            scale = pres_scale
         if not use_student_lh:
             if effective_q_type == 9:
                 lh_style = f"font-size: {CONFIG_FONT_SIZE_PRES_TYPE_9} !important; line-height: {CONFIG_LH_PRES_TYPE_9} !important;"
             else:
-                lh_style = f"font-size: {CONFIG_FONT_SIZE_PRESENTATION} !important; line-height: {CONFIG_LH_PRESENTATION} !important;"
+                lh_style = f"font-size: {pres_font_size} !important; line-height: {pres_line_height} !important;"
         else:
             lh_style = ""
 
@@ -1580,13 +1612,17 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
             </script>
             """
 
-        # [수정] 빈 공간 필기용 노트 영역 (아이보리 배경색 적용 및 도트 패턴 제거)
         memo_html = ""
         if slide_idx in [1, 2] or show_memo:
             memo_html = f"""
-            <div style="margin-top: 15px; flex: 1; display: flex; flex-direction: column; padding-bottom: 10px; min-height: 80px;">
-                <div style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #90a4ae; margin-bottom: 6px; letter-spacing: 1px;"><span style="color: #cfd8dc;">+</span> ANALYSIS &amp; NOTES</div>
-                <div style="flex: 1; width: 100%; border: 1.5px solid #f5eedc; border-radius: 8px; background-color: #fffdf4; box-sizing: border-box; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"></div>
+            <div style="margin-top: 12px; flex: 1; display: flex; flex-direction: column; padding-bottom: 8px; min-height: 60px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <div style="width: 18px; height: 18px; background: linear-gradient(135deg, #546e7a, #78909c); border-radius: 4px; display: flex; justify-content: center; align-items: center;">
+                        <span style="color: white; font-size: 10px; font-weight: 900; font-family: 'Montserrat', sans-serif;">N</span>
+                    </div>
+                    <span style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 800; color: #78909c; letter-spacing: 1.5px;">ANALYSIS &amp; NOTES</span>
+                </div>
+                <div style="flex: 1; width: 100%; border-radius: 10px; background: linear-gradient(180deg, #fefefe 0%, #faf8f2 100%); border: 1px solid #e8e0d0; box-sizing: border-box; box-shadow: inset 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.04); background-image: repeating-linear-gradient(transparent, transparent 24px, #f0ebe0 24px, #f0ebe0 25px); background-position: 0 12px;"></div>
             </div>
             """
 
@@ -1688,10 +1724,7 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
                 if is_insertion_prob:
                     opt = re.sub(r'^\s*\(\s*([①-⑤])\s*\)', r'\1', opt)
                     opt = re.sub(r'^\s*([①-⑤])', r'( \1 )', opt)
-                is_correct = ((idx + 1) == main_correct_ans_num)
-                opt_style = ' style="font-size: 15px; line-height: 2.8; color: #000000;'
-                if is_correct: opt_style += ' color:#d32f2f; font-weight:900;'
-                opt_style += '"'
+                opt_style = ' style="font-size: 15px; line-height: 2.8; color: #000000;"'
                 pres_options_html += f'<div class="opt-item-wrapper" style="margin-bottom: 8px;"><span class="opt-row"{opt_style}>{opt}</span></div>'
             if prob_idx < len(raw_options_visual) - 1:
                 pres_options_html += '<div style="height: 15px;"></div>'
@@ -1701,10 +1734,7 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
             if is_insertion_prob:
                 opt = re.sub(r'^\s*\(\s*([①-⑤])\s*\)', r'\1', opt)
                 opt = re.sub(r'^\s*([①-⑤])', r'( \1 )', opt)
-            is_correct = ((idx + 1) == main_correct_ans_num)
-            opt_style = ' style="font-size: 15px; line-height: 2.8; color: #000000;'
-            if is_correct: opt_style += ' color:#d32f2f; font-weight:900;'
-            opt_style += '"'
+            opt_style = ' style="font-size: 15px; line-height: 2.8; color: #000000;"'
             pres_options_html += f'<div class="opt-item-wrapper" style="margin-bottom: 8px;"><span class="opt-row"{opt_style}>{opt}</span></div>'
 
     opt_box = f'<div class="options-box" style="padding: 10px 25px;"><span class="opt-title">▼ CHOICES</span>{pres_options_html}</div>'
@@ -1717,7 +1747,7 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
 
     opt_slide_content += opt_box
     content_slides.append(
-        make_pres_slide(q_stem_html_vis, opt_slide_content, scale=1.5, align_center=False, show_memo=True))
+        make_pres_slide(q_stem_html_vis, opt_slide_content, align_center=False, show_memo=True))
 
     # ==============================================================================
     # 마지막 슬라이드: 핵심 콕콕 단독 배치 (발문 포함하여 통일감 및 페이지 배지 생성 대응)
@@ -1743,7 +1773,7 @@ def generate_presentation_pages(json_data_str, unit_num, badge_text, cover_title
             <div class="ph-right"><svg class="yt-icon" viewBox="0 0 24 17" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="17" rx="4" fill="#D32F2F"/><path d="M10 11.5V5.5L15 8.5L10 11.5Z" fill="white"/></svg><span>ROY'S ENGLISH</span></div>
         </div>
         <div style="flex: 1; padding: {CONFIG_PRES_PADDING_TOP} 20mm 10mm 20mm; display: flex; justify-content: flex-start; align-items: flex-start; overflow: hidden; background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);">
-            <div style="width: 160.84mm; transform: scale(1.5); margin-left: {CONFIG_PRES_MARGIN_LEFT}; transform-origin: top left; display: flex; flex-direction: column;">
+            <div style="width: 160.84mm; transform: scale({pres_scale}); margin-left: {CONFIG_PRES_MARGIN_LEFT}; transform-origin: top left; display: flex; flex-direction: column;">
 
                 <div class="left-col" style="width: 100%; display: flex; flex-direction: column;">
                     {q_stem_html_vis}
