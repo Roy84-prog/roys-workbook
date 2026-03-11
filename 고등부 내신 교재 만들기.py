@@ -2763,6 +2763,91 @@ def generate_unit_pages(json_str, is_teacher=False, file_name=""):
 
     html = html.replace("__STEP0_PAGE_HTML__", "")
 
+    # ==========================================
+    # 에필로그 (EPILOGUE) - 백지 노트 학습용
+    # ==========================================
+    epilogue_paragraphs_html = ""
+
+    ep_eng_fs = "12.5px" if total_sents >= 12 else "13.5px"
+    ep_eng_lh = "1.6" if total_sents >= 12 else "1.85"
+    ep_gap = "10px" if total_sents >= 12 else "16px"
+    ep_pad = "10px 12px" if total_sents >= 12 else "12px 15px"
+    # 밑줄 간격: 문장 수에 따라 조정
+    ep_line_count = 2 if total_sents >= 12 else 3
+    ep_line_height = "22px" if total_sents >= 12 else "26px"
+
+    for stg in stage_data:
+        title = stg.get('title', '')
+        rng = stg.get('range', '')
+        target_nums = parse_range(rng)
+
+        eng_sents = []
+        for n in target_nums:
+            s_dict = next((item for item in eng_sentences if str(item.get('num', -1)) == str(n)), None)
+            if s_dict:
+                raw_eng = s_dict.get('eng_analyzed', '').replace('\\n', ' ')
+                clean_eng = clean_syntax_debris(clean_text_logic(raw_eng)).strip()
+                clean_eng = clean_eng.replace('/', '')
+                clean_eng = re.sub(r'\s+', ' ', clean_eng)
+                clean_eng = re.sub(r'^[❶-❿⓫-⓴①-⑳0-9.\s]+', '', clean_eng).strip()
+
+                badge_num = convert_num_to_badge_str(s_dict.get('num', n))
+                eng_sents.append(
+                    f'<span class="para-mark" style="width:1.2em; height:1.2em; line-height:1.2em; font-size:0.7em;">{badge_num}</span> {clean_eng}')
+
+        if not eng_sents:
+            continue
+
+        eng_para = " ".join(eng_sents)
+
+        # 빈 밑줄 노트 라인 생성
+        note_lines_html = ""
+        for _ in range(ep_line_count):
+            note_lines_html += f'<div style="border-bottom: 1px solid #cfd8dc; height: {ep_line_height};"></div>'
+
+        epilogue_paragraphs_html += f'''
+        <div style="margin-bottom: {ep_gap}; page-break-inside: avoid; break-inside: avoid;">
+            <div style="font-family: var(--font-head); font-weight: 800; font-size: 12.5px; color: var(--c-brand); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <div style="width:4px; height:12px; background-color:var(--c-accent); border-radius:2px;"></div>{title}
+            </div>
+            <div style="background: #fff; border: 1px solid #cfd8dc; border-radius: 8px; padding: {ep_pad};">
+                <div style="font-family: var(--font-serif); font-size: {ep_eng_fs}; line-height: {ep_eng_lh}; color: #212121; text-align: justify; margin-bottom: 10px; word-break: break-word;">
+                    {eng_para}
+                </div>
+                <div style="border-top: 1px dashed #cfd8dc; padding-top: 8px;">
+                    {note_lines_html}
+                </div>
+            </div>
+        </div>
+        '''
+
+    epilogue_page_html = f"""
+<div class="page-container page-break">
+    __PAGE_NUM__
+    <div class="page-header">
+        <div class="ph-left">
+            <span class="ph-source-origin">{source_origin}</span>
+            <div class="unit-badge-group">
+                <span class="ub-label">NO.</span>
+                <span class="ub-num">{q_num}</span>
+            </div>
+        </div>
+        <div class="ph-right">EPILOGUE [Study Note]</div>
+    </div>
+    <div class="p0-body" style="padding: 10mm 15mm; flex: 1; display: block; overflow: hidden; background: #fff;">
+        <div class="sec-head-style" style="margin-bottom: 15px;"><div class="icon-box icon-r">N</div>Note & Review (지문을 읽고 해석을 직접 써보세요)</div>
+        <div style="display: flex; flex-direction: column;">
+            {epilogue_paragraphs_html}
+        </div>
+    </div>
+    <div class="page-footer">
+        <div class="footer-logo"></div>
+    </div>
+</div>
+"""
+
+    html += epilogue_page_html
+
     return step0_page_html, html
 
 
