@@ -39,7 +39,7 @@ os.makedirs(PDF_HISTORY_DIR, exist_ok=True)
 # 페이지 설정
 # ==========================================
 st.set_page_config(
-    page_title="Roy's Class - 워크북 생성기",
+    page_title="Roy's 고등학교 내신 수업 자료 생성기",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -308,7 +308,7 @@ with st.sidebar:
 # ==========================================
 # 메인 영역
 # ==========================================
-st.markdown('<div class="main-title">Roy\'s Class 워크북 생성기</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">Roy\'s 고등학교 내신 수업 자료 생성기</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">JSON 파일을 업로드하면 학생용/교사용 PDF 워크북을 자동 생성합니다.</div>', unsafe_allow_html=True)
 
 # 탭: 생성 / 이전 기록
