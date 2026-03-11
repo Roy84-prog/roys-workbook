@@ -399,7 +399,7 @@ with tab_create:
                 st.download_button(
                     "전체 PDF ZIP 다운로드",
                     data=zip_data,
-                    file_name="Workbook_PDF_All.zip",
+                    file_name=uploaded_files[0].name.replace('.json', '') + ".zip",
                     mime="application/zip",
                     use_container_width=True,
                     key="dl_zip"
