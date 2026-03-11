@@ -39,7 +39,7 @@ os.makedirs(PDF_HISTORY_DIR, exist_ok=True)
 # 페이지 설정
 # ==========================================
 st.set_page_config(
-    page_title="Roy's 고등학교 내신 수업 자료 생성기",
+    page_title="Roy's 고등학교 내신 교재 만들기",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="expanded"
